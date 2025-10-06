@@ -1,5 +1,24 @@
-RECYCLE_BIN**
+# Virtual environment
+venv/
 
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Environment variables
 .env
-**.env
-app/app.log
+
+# Pulumi files
+Pulumi.*.yaml
+*.bak
+
+# Logs
+*.log
+
+# MacOS specific files
+.DS_Store
+
+# IDE specific files
+.vscode/
+.idea/
