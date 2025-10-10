@@ -1,5 +1,6 @@
 pulumi>=3.0.0,<4.0.0
 pulumi-aws
+pulumi-awsx
 pulumi-mongodbatlas
 python-dotenv
 pymongo
