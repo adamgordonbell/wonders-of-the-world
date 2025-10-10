@@ -22,6 +22,7 @@ from pulumi.dynamic import Resource, ResourceProvider, CreateResult
 from pulumi import ResourceOptions  # Pulumi core resource import
 from pymongo import MongoClient, errors  # MongoDB connection imports
 
+
 class MongoDBCollectionProvider(ResourceProvider):
     """
     A Pulumi dynamic resource provider for managing MongoDB collections.
@@ -33,10 +34,9 @@ class MongoDBCollectionProvider(ResourceProvider):
     The resource provider supports basic MongoDB collection creation operations.
     """
 
-    def __connect_with_retry(self,
-                             props: Dict[str, str],
-                             max_retries=5,
-                             retry_delay=10) -> MongoClient:
+    def __connect_with_retry(
+        self, props: Dict[str, str], max_retries=5, retry_delay=10
+    ) -> MongoClient:
         """
         Attempts to connect to MongoDB with retry logic for authentication errors.
 
@@ -76,7 +76,7 @@ class MongoDBCollectionProvider(ResourceProvider):
                 )
                 time.sleep(retry_delay)
                 # Test the connection by issuing a ping command
-                client.admin.command('ping')
+                client.admin.command("ping")
                 # print(f"Ping result: {client.admin.command('ping')}")
                 return client
             except errors.OperationFailure as e:
@@ -119,7 +119,7 @@ class MongoDBCollectionProvider(ResourceProvider):
         # Set up the logger for PyMongo
         logging.basicConfig(level=logging.ERROR)  # Set default logging level
         # Obtain the logger used by PyMongo and set the desired level.
-        logger = logging.getLogger('pymongo')
+        logger = logging.getLogger("pymongo")
         logger.setLevel(logging.ERROR)
 
         client = None
@@ -155,14 +155,15 @@ class MongoDBCollectionProvider(ResourceProvider):
 
         except errors.PyMongoError:
             # Catch and raise any MongoDB connection errors
-            raise RuntimeError(f"MongoDB connection error.")
+            raise RuntimeError("MongoDB connection error.")
         finally:
             # Ensure that the client is closed if it was successfully created
             if client is not None:
                 client.close()
         # finally:
-            # Restore standard error output
-            # sys.stderr = sys.__stderr__
+        # Restore standard error output
+        # sys.stderr = sys.__stderr__
+
 
 class MongoDBCollection(Resource):
     """

@@ -19,6 +19,7 @@ Environment Variables:
 Functions:
 - get_public_ip: Fetches the public IP address dynamically if not set in the environment variables.
 """
+
 # Standard library imports
 import os
 import sys  # Used for process exit handling
@@ -39,7 +40,9 @@ atlas_config = Config("mongodbatlas")
 load_dotenv()
 
 # MongoDB Atlas project where the resources will be created
-MONGODB_ATLAS_PROJECT_ID = pulumi_config.get('mongodbatlas_projectId') or os.getenv("MONGODB_ATLAS_PROJECT_ID")
+MONGODB_ATLAS_PROJECT_ID = pulumi_config.get("mongodbatlas_projectId") or os.getenv(
+    "MONGODB_ATLAS_PROJECT_ID"
+)
 if not MONGODB_ATLAS_PROJECT_ID:
     raise Exception(
         "❌ Missing MONGODB_ATLAS_PROJECT_ID.\n"
@@ -65,8 +68,9 @@ if not MONGODB_ATLAS_PROJECT_ID:
 
 
 # MongoDB Atlas API keys for authentication
-if  not (atlas_config.get("publicKey") or os.getenv("MONGODB_ATLAS_PUBLIC_KEY") ) or \
-    not (atlas_config.get_secret("privateKey") or os.getenv("MONGODB_ATLAS_PRIVATE_KEY") ):
+if not (atlas_config.get("publicKey") or os.getenv("MONGODB_ATLAS_PUBLIC_KEY")) or not (
+    atlas_config.get_secret("privateKey") or os.getenv("MONGODB_ATLAS_PRIVATE_KEY")
+):
     print(
         "❌ Missing MongoDB Atlas API keys.\n"
         "[Preferred] Please set it via\n"
@@ -80,7 +84,9 @@ if  not (atlas_config.get("publicKey") or os.getenv("MONGODB_ATLAS_PUBLIC_KEY") 
     sys.exit(1)
 
 # Retrieve the public IP address or fetch dynamically if not set
-IP_ADDRESS = pulumi_config.get("mongodbatlas_ip_address") or os.getenv("IP_ADDRESS", get_public_ip())
+IP_ADDRESS = pulumi_config.get("mongodbatlas_ip_address") or os.getenv(
+    "IP_ADDRESS", get_public_ip()
+)
 if not IP_ADDRESS:
     print(
         "❌ Missing IP_ADDRESS.\n"
@@ -92,7 +98,15 @@ if not IP_ADDRESS:
     sys.exit(1)
 
 # Fetch variables or use default values
-VECTOR_DATABASE = pulumi_config.get("vector_database") or os.getenv("VECTOR_DATABASE", "ww")
-VECTOR_COLLECTION = pulumi_config.get("vector_collection") or os.getenv("VECTOR_COLLECTION", "facts")
-VECTOR_USER = pulumi_config.get("vector_user") or os.getenv("VECTOR_USER", "vector-user")
-VECTOR_PASSWORD = pulumi_config.get_secret("vector_password") or os.getenv("VECTOR_PASSWORD", "v3ct0rp4ssw0rd")  # For demo purposes only
+VECTOR_DATABASE = pulumi_config.get("vector_database") or os.getenv(
+    "VECTOR_DATABASE", "ww"
+)
+VECTOR_COLLECTION = pulumi_config.get("vector_collection") or os.getenv(
+    "VECTOR_COLLECTION", "facts"
+)
+VECTOR_USER = pulumi_config.get("vector_user") or os.getenv(
+    "VECTOR_USER", "vector-user"
+)
+VECTOR_PASSWORD = pulumi_config.get_secret("vector_password") or os.getenv(
+    "VECTOR_PASSWORD", "v3ct0rp4ssw0rd"
+)  # For demo purposes only
