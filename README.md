@@ -109,11 +109,36 @@ curl "http://localhost:8080/vectorsearch?prompt=Rome"
 
 This project is licensed under the MIT License.
 
+### Plan
+
+### **Plan Overview**
+
+* You already have the full Pulumi–MongoDB infrastructure working **inside Cloud Code**.
+* You **couldn’t get it running in Neo**, so the demo will **show Cloud Code instead**.
+
+### **Demo Flow**
+
+1. **Start Clean:** delete all infra definitions except the provider.
+2. **Open Cloud Code** (with Pulumi MCP installed).
+3. **Prompt the agent:** “Go build this.”
+4. Let the agent generate and deploy the resources.
+5. **Time the run**—you need to test how long it takes in practice.
+
+### **Backup & Safety**
+
+* The **working infrastructure code** is stored in the project’s **README**, so Cloud Code can fall back to that if needed.
+
+### **Talk Content**
+
+* Narrative focus will be less on the code and more on:
+
+  * Showing how Pulumi MCP automates infra creation end-to-end.
+  * Comparing the experience of Cloud Code vs Neo.
+  * Reflecting on what “AI-built infrastructure” feels like in practice.
 
 ### Infrastructure
 
 MongoDB Atlas free cluster with vector search; containerized Flask on AWS Lambda via ECR; custom Pulumi dynamic resource (infra/mongodb_collection.py) auto-loads 264 embedded docs during deployment.
-
 
 ```
 """A Python Pulumi program to provision a MongoDB Atlas cluster with vector search capabilities and AWS Lambda."""
