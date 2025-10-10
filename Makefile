@@ -10,6 +10,7 @@
 
 # Variables
 APP_DIR := app
+INFRA_DIR := infra
 MONGODB_URI_LOCAL := mongodb://localhost:27007/ww?directConnection=true
 
 .PHONY: help run clean clean-local test setup-local setup-cloud setup-venv
@@ -94,15 +95,11 @@ setup-cloud:
     fi; \
 	$(MAKE) setup-venv DIR=$(APP_DIR); \
 	echo "Setting up infrastructure with Pulumi..."; \
-	if [ ! -d "venv" ]; then \
-		echo "Creating virtual environment..."; \
-		python3 -m venv venv; \
-	fi; \
-	source venv/bin/activate && pip install --upgrade pip && pip install -r requirements.txt; \
-	pulumi --non-interactive login; \
-	pulumi --non-interactive stack init vectorinfra || true; \
-	pulumi --non-interactive up  --stack vectorinfra --yes; \
-	echo "MONGODB_URI=$$(pulumi stack output MONGODB_URI --show-secrets)" > $(APP_DIR)/.env; \
+	$(MAKE) setup-venv DIR=$(INFRA_DIR); \
+	cd $(INFRA_DIR) && source venv/bin/activate && pulumi --non-interactive login; \
+	cd $(INFRA_DIR) && source venv/bin/activate && pulumi --non-interactive stack init vectorinfra || true; \
+	cd $(INFRA_DIR) && source venv/bin/activate && pulumi --non-interactive up  --stack vectorinfra --yes; \
+	cd $(INFRA_DIR) && echo "MONGODB_URI=$$(pulumi stack output MONGODB_URI --show-secrets)" > ../$(APP_DIR)/.env; \
 	echo "Cloud environment setup complete! "
 
 # Run application
@@ -113,7 +110,7 @@ run:
 # Clean up generated files
 clean:
 	@echo "Cleaning up generated files..."
-	rm -rf $(APP_DIR)/venv venv
+	rm -rf $(APP_DIR)/venv $(INFRA_DIR)/venv
 	rm -f $(APP_DIR)/app.log $(APP_DIR)/.env
 	@echo "Cleanup complete!"
 
@@ -138,7 +135,7 @@ clean-local:
 		deactivate || true; \
 	fi
 	@echo "Removing virtual environments..."
-	rm -rf $(APP_DIR)/venv venv
+	rm -rf $(APP_DIR)/venv $(INFRA_DIR)/venv
 	@echo "Local Atlas deployment and venv cleanup complete!"
 
 # Test vector search endpoint

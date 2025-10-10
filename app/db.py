@@ -24,7 +24,8 @@ client = MongoClient(MONGODB_URI)
 db = client["ww"]  # Update this with your database name
 collection = db["facts"]  # Update this with your collection name
 
-# Load the embedding model
+# Load the embedding model from cache
+# Model should be pre-cached in /opt/ml by Docker build
 model = SentenceTransformer(MODEL, trust_remote_code=True)
 
 def get_embedding(data):

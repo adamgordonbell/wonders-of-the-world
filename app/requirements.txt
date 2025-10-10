@@ -1,8 +1,9 @@
 Flask==3.0.3
 python-dotenv==1.0.1
 einops==0.7.0
-torch==2.7.1
+torch==2.6.0
 sentence-transformers==2.7.0
 pymongo==4.7.2
 scikit-learn==1.7.0
-numpy==2.3.1
+numpy==2.1.0
+serverless-wsgi==3.0.4

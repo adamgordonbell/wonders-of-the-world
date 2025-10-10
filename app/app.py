@@ -9,6 +9,26 @@ from db import collection, get_embedding, setup_vector_search  # Import necessar
 
 app = Flask(__name__)
 
+@app.route('/', methods=['GET'])
+def health():
+    """Health check endpoint"""
+    return jsonify({"status": "healthy", "message": "Wonders of the World API"})
+
+@app.route('/load-data', methods=['POST'])
+def load_data():
+    """Load sample data into MongoDB"""
+    try:
+        count = setup_vector_search()
+        return jsonify({
+            "status": "success",
+            "message": f"Loaded {count} documents into the database"
+        })
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
+
 @app.route('/vectorsearch', methods=['GET'])
 def vector_search():
     """
@@ -62,6 +82,9 @@ def vector_search():
     try:
         results = collection.aggregate(pipeline)
         for doc in results:
+            # Convert ObjectId to string for JSON serialization
+            if '_id' in doc:
+                doc['_id'] = str(doc['_id'])
             data.append(doc)
     except (PyMongoError, OperationFailure, NetworkTimeout) as e:  # Catch specific MongoDB errors
         return jsonify({"error": f"Database error: {str(e)}"}), 500

@@ -22,3 +22,6 @@ Pulumi.*.yaml
 # IDE specific files
 .vscode/
 .idea/
+
+# Docker build cache
+.dockerignore

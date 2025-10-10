@@ -35,8 +35,8 @@ from utils import get_public_ip  # Function to fetch public IP address
 pulumi_config = Config()
 atlas_config = Config("mongodbatlas")
 
-# Load environment variables from .env file
-load_dotenv()
+# Load environment variables from .env file in parent directory
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
 
 # MongoDB Atlas project where the resources will be created
 MONGODB_ATLAS_PROJECT_ID = pulumi_config.get('mongodbatlas_projectId') or os.getenv("MONGODB_ATLAS_PROJECT_ID")

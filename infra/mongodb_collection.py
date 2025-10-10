@@ -2,17 +2,15 @@
 Pulumi Custom Resource for MongoDB Collections
 
 This module defines a Pulumi dynamic resource for managing MongoDB collections.
-It enables the creation of collections in a MongoDB database.
-
-Currently, this resource only supports basic collection creation.
+It enables the creation of collections in a MongoDB database and optionally
+loads initial data with embeddings.
 
 For more details on Pulumi dynamic providers, visit:
 https://www.pulumi.com/docs/iac/concepts/resources/dynamic-providers/
 """
 
 # Standard library imports
-# import os
-# import sys
+import json
 import logging
 import time
 from typing import Optional, Dict
@@ -93,20 +91,65 @@ class MongoDBCollectionProvider(ResourceProvider):
         # If authentication fails after max_retries, raise an exception
         # raise Exception(f"Failed to authenticate after {max_retries} attempts.")
 
+    def __load_data_with_embeddings(self, client: MongoClient, db_name: str,
+                                     collection_name: str, data_file: str) -> int:
+        """
+        Loads data from a JSON file and generates embeddings for each document.
+
+        Args:
+            client: MongoDB client
+            db_name: Database name
+            collection_name: Collection name
+            data_file: Path to JSON file with data
+
+        Returns:
+            Number of documents inserted
+        """
+        try:
+            # Import here to avoid dependency issues during infrastructure deployment
+            from sentence_transformers import SentenceTransformer
+
+            # Load the embedding model
+            print("Loading embedding model...")
+            model = SentenceTransformer('nomic-ai/nomic-embed-text-v1', trust_remote_code=True)
+
+            # Load data from file
+            print(f"Loading data from {data_file}...")
+            with open(data_file, 'r') as f:
+                data = json.load(f)
+
+            # Generate embeddings and prepare documents
+            print(f"Generating embeddings for {len(data)} documents...")
+            documents = []
+            for item in data:
+                embedding = model.encode(item['text']).tolist()
+                documents.append({
+                    '_id': item['_id'],
+                    'text': item['text'],
+                    'embedding': embedding
+                })
+
+            # Insert documents
+            collection = client[db_name][collection_name]
+            collection.insert_many(documents)
+            print(f"Successfully loaded {len(documents)} documents with embeddings")
+
+            return len(documents)
+        except Exception as e:
+            print(f"Error loading data: {str(e)}")
+            raise
+
     def create(self, props: Dict[str, str]) -> CreateResult:
         """
-        Creates a MongoDB collection.
+        Creates a MongoDB collection and optionally loads initial data.
 
         This method connects to MongoDB, creates the specified collection, and
-        returns a Pulumi `CreateResult` with the collection details.
+        optionally loads data from a JSON file with generated embeddings.
 
         Args:
             props (Dict[str, str]): A dictionary containing MongoDB connection details
-                                    (URI,
-                                    username,
-                                    password,
-                                    database name, and
-                                    collection name).
+                                    (URI, username, password, database name,
+                                    collection name, and optional data_file path).
 
         Returns:
             CreateResult: A Pulumi CreateResult object containing the collection details.
@@ -124,11 +167,9 @@ class MongoDBCollectionProvider(ResourceProvider):
 
         client = None
         try:
-            # Suppress all standard error output
-            # sys.stderr = open(os.devnull, "w")
-
             db_name = props.get("db")
             collection_name = props.get("coll")
+            data_file = props.get("data_file")  # Optional data file path
 
             # Validate that both db and collection names are provided
             if not db_name or not collection_name:
@@ -140,8 +181,20 @@ class MongoDBCollectionProvider(ResourceProvider):
                 raise RuntimeError("Failed to create collection")
 
             # Create the collection using the MongoDB command
-            client[db_name].command("create", collection_name)
-            client.close()
+            try:
+                client[db_name].command("create", collection_name)
+                print(f"Created collection {db_name}.{collection_name}")
+            except errors.OperationFailure as err:
+                if "already exists" in str(err):
+                    print(f"Collection {db_name}.{collection_name} already exists")
+                else:
+                    raise
+
+            # Load data if data_file is provided
+            if data_file:
+                print(f"Loading data from {data_file}...")
+                count = self.__load_data_with_embeddings(client, db_name, collection_name, data_file)
+                props["documents_loaded"] = str(count)
 
             # Return a successful result with the created collection details
             return CreateResult(id_=f"{db_name}.{collection_name}", outs=props)
@@ -149,6 +202,12 @@ class MongoDBCollectionProvider(ResourceProvider):
         except errors.OperationFailure as err:
             # Handle error when collection already exists
             if "already exists" in str(err):
+                # Still try to load data if specified and collection is empty
+                if data_file and client:
+                    collection = client[db_name][collection_name]
+                    if collection.count_documents({}) == 0:
+                        count = self.__load_data_with_embeddings(client, db_name, collection_name, data_file)
+                        props["documents_loaded"] = str(count)
                 return CreateResult(id_=f"{db_name}.{collection_name}", outs=props)
             # Raise an error if the collection creation fails
             raise RuntimeError("Failed to create collection.")
@@ -160,9 +219,6 @@ class MongoDBCollectionProvider(ResourceProvider):
             # Ensure that the client is closed if it was successfully created
             if client is not None:
                 client.close()
-        # finally:
-            # Restore standard error output
-            # sys.stderr = sys.__stderr__
 
 class MongoDBCollection(Resource):
     """
