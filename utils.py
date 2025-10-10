@@ -14,6 +14,7 @@ Usage:
 
 import requests
 
+
 def get_public_ip():
     """
     Retrieves the public IP address of the machine using the ipify API.
