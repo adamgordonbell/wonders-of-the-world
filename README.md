@@ -122,6 +122,9 @@ This project is licensed under the MIT License.
 2. **Open Cloud Code** (with Pulumi MCP installed).
 3. **Prompt the agent:** “Go build this.”
 4. Let the agent generate and deploy the resources.
+4a. Ask Neo for what the infrastructure is
+4b. Show database in mongo end
+4c. Show stuff in AWS? 
 5. **Time the run**—you need to test how long it takes in practice.
 
 ### **Backup & Safety**
